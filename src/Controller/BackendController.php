@@ -7,33 +7,43 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Serializer;
 
 #[Route('/api-ouverte-ent-liste')]
 class BackendController extends AbstractController
 {
-    private const BASE_URL_API= '/api-ouverte-ent-liste';
+    private $serializer;
     
-    public function __construct(private CompanyService $companyService) { }
+    public function __construct(private CompanyService $companyService) { 
+        $encoder = [new JsonEncoder()];
+        $normalier = [new ObjectNormalizer()];
+        $this->serializer = new Serializer($normalier, $encoder);
+    }
 
     #[Route('/', name: 'get_all', methods:['GET'] )]
-    public function index():JsonResponse
+    public function index():Response
     {   
         $result = $this->companyService->getAllCompany();
-        return $this->json($result, 200);
+        $jsonContent = $this->serializer->serialize($result, 'json');
+        return new Response($jsonContent, 200);
     }
 
     #[Route('/search', name: 'search', methods:['GET'])]
-    public function search(Request $request):JsonResponse
+    public function search(Request $request):Response
     {   
         $siren = $request->get('siren');
         $result = $this->companyService->getAllCompany($siren);
+
         if (empty($result)) {
-            return new JsonResponse("Error no companies found!",404);
+            $errorMessage = $this->serializer->serialize("Error no companies found!", 'json');
+            return new Response($errorMessage,404);
         }
 
-
-        return $this->json($result, 200);
+        $jsonContent = $this->serializer->serialize($result, 'json');
+        return new Response($jsonContent, 200);
     }
 
     #[Route('/', name: 'create', methods:['POST'] )]

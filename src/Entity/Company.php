@@ -5,6 +5,9 @@ namespace App\Entity;
 use App\Repository\CompanyRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Model\AdressDTO;
+use App\Model\CompanyDTO;
+use App\Model\GpsDTO;
 
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
 class Company
@@ -113,5 +116,12 @@ class Company
         $this->gps_longitude = $gps_longitude;
 
         return $this;
+    }
+
+    
+    public function createFrom(): CompanyDTO {
+        $adress = new AdressDTO($this->getAdressNum(), $this->getAdressVoie(), $this->getAdressCity());
+        $gps = new GpsDTO($this->getGpsLatitude(), $this->getGpsLongitude());
+        return new CompanyDTO($this->getSiren(), $this->getSocialRaison(), $adress, $gps);            
     }
 }
