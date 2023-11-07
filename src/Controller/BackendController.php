@@ -4,24 +4,21 @@ namespace App\Controller;
 
 use App\Model\CompanyDTO;
 use App\Service\CompanyService;
+use DefaultMessage;
+use Doctrine\ORM\Cache\DefaultCache;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api-ouverte-ent-liste')]
 class BackendController extends AbstractController
 {
     
-    public function __construct(private CompanyService $companyService, private SerializerInterface $serializer) { 
-        $encoder = [new JsonEncoder()];
-        $normalier = [new ObjectNormalizer()];
-    }
+    public function __construct(private CompanyService $companyService, private SerializerInterface $serializer) { }
 
     #[Route('/', name: 'get_all', methods:['GET'] )]
     public function index():Response
@@ -38,8 +35,9 @@ class BackendController extends AbstractController
         $result = $this->companyService->getAllCompany($siren);
 
         if (empty($result)) {
-            $errorMessage = $this->serializer->serialize("Error no companies found!", 'json');
-            return new Response($errorMessage,404);
+            $errorMessage = new DefaultMessage("Error no companies found!");
+            $errorJson = $this->serializer->serialize($errorMessage, 'json');
+            return new Response($errorJson, 404);
         }
 
         $jsonContent = $this->serializer->serialize($result, 'json');
@@ -47,11 +45,29 @@ class BackendController extends AbstractController
     }
 
     #[Route('/', name: 'create', methods:['POST'] )]
-    public function create(Request $request):JsonResponse
-    {
+    public function create(Request $request):Response
+    {   
+        try {
         $jsonInput = $this->serializer->deserialize($request->getContent(), CompanyDTO::class, 'json');
-        dd($jsonInput);
+        $statusResponse = $this->companyService->upsertCompany($jsonInput, true);
+
+        if ($statusResponse == 409) {
+            $errorMessage = new DefaultMessage("Enterprise already exist");
+            $errorJson = $this->serializer->serialize($errorMessage, 'json');
+            return new Response($errorJson, 409);
+        }
         
-        return $this->json("test");
+        if ($statusResponse == 200) {
+            $getterUrl = $_SERVER['SERVER_NAME']."/api-ouverte-ent-liste/search?siren=".$jsonInput->getSiren();
+            $message = new DefaultMessage("Company created with siren".$jsonInput->getSiren(), $getterUrl);
+            $jsonResponse = $this->serializer->serialize($message, 'json');
+            return new Response($jsonResponse, $statusResponse);
+        }
+
+        } catch (Exception $e) {
+            $errorMessage = new DefaultMessage("Error json format");
+            $errorJson = $this->serializer->serialize($errorMessage, 'json');
+            return new Response($errorJson, 400);
+        }        
     }
 }

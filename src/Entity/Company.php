@@ -134,9 +134,25 @@ class Company
     }
 
     
-    public function createFrom(): CompanyDTO {
+    public function convertTo(): CompanyDTO {
         $gps = new GpsDTO($this->getGpsLatitude(), $this->getGpsLongitude());
         $adress = new AdressDTO($this->getAdressNum(), $this->getAdressVoie(), $this->getAdressCity(), $this->getAdressCode(), $gps);
         return new CompanyDTO($this->getSiren(), $this->getSocialRaison(), $adress);            
+    }
+
+    public static function createFrom(CompanyDTO $dto): Company {
+        $adress = $dto->getAdress();
+        $gps = $adress->getGps();
+        $company = new Company();
+        $company->setSiren($dto->getSiren())
+        ->setSocialRaison($dto->getSocialRaison())
+        ->setAdressNum($adress->getNumero())
+        ->setAdressVoie($adress->getVoie())
+        ->setAdressCode($adress->getCodePostal())
+        ->setAdressCity($adress->getCity())
+        ->setGpsLatitude($gps->getLatitude())
+        ->setGpsLongitude($gps->getLongitude());
+
+        return $company;
     }
 }

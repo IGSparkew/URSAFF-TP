@@ -14,8 +14,7 @@
         #[SerializedName('adresse')]
         private AdressDTO $adress;
         
-
-
+        
         public function __construct(string $siren, string $social_raison, AdressDTO $adress) {
                 $this->siren = $siren;
                 $this->social_raison = $social_raison;
