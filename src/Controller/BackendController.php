@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Model\CompanyDTO;
 use App\Service\CompanyService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -11,16 +12,15 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api-ouverte-ent-liste')]
 class BackendController extends AbstractController
 {
-    private $serializer;
     
-    public function __construct(private CompanyService $companyService) { 
+    public function __construct(private CompanyService $companyService, private SerializerInterface $serializer) { 
         $encoder = [new JsonEncoder()];
         $normalier = [new ObjectNormalizer()];
-        $this->serializer = new Serializer($normalier, $encoder);
     }
 
     #[Route('/', name: 'get_all', methods:['GET'] )]
@@ -47,8 +47,11 @@ class BackendController extends AbstractController
     }
 
     #[Route('/', name: 'create', methods:['POST'] )]
-    public function create():JsonResponse
-    {   
+    public function create(Request $request):JsonResponse
+    {
+        $jsonInput = $this->serializer->deserialize($request->getContent(), CompanyDTO::class, 'json');
+        dd($jsonInput);
+        
         return $this->json("test");
     }
 }

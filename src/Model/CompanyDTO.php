@@ -1,9 +1,27 @@
 <?php
     namespace App\Model;
+    
+    use Symfony\Component\Serializer\Annotation\SerializedName;
 
     class CompanyDTO {
 
-        public function __construct(private string $siren, private string $social_raison, private AdressDTO $adress, private GpsDTO $gps) {}
+        #[SerializedName('siren')]
+        private string $siren;
+        
+        #[SerializedName('raison_sociale')]
+        private string $social_raison; 
+
+        #[SerializedName('adresse')]
+        private AdressDTO $adress;
+        
+
+
+        public function __construct(string $siren, string $social_raison, AdressDTO $adress) {
+                $this->siren = $siren;
+                $this->social_raison = $social_raison;
+                $this->adress = $adress;
+        }
+
 
         /**
          * Get the value of siren
@@ -54,15 +72,6 @@
          */
         public function getAdress(): AdressDTO {
                 return $this->adress;
-        }
-
-        /**
-         * Get the value of gps
-         *
-         * @return GpsDTO
-         */
-        public function getGps(): GpsDTO {
-                return $this->gps;
         }
     }
 ?>

@@ -29,6 +29,9 @@ class Company
     private ?string $adress_city = null;
 
     #[ORM\Column(nullable: true)]
+    private ?int $adress_code = null;
+
+    #[ORM\Column(nullable: true)]
     private ?float $gps_latitude = null;
 
     #[ORM\Column(nullable: true)]
@@ -82,6 +85,18 @@ class Company
         return $this;
     }
 
+    public function getAdressCode(): ?string
+    {
+        return $this->adress_code;
+    }
+
+    public function setAdressCode(?string $adress_code): static
+    {
+        $this->adress_code = $adress_code;
+
+        return $this;
+    }
+
     public function getAdressCity(): ?string
     {
         return $this->adress_city;
@@ -120,8 +135,8 @@ class Company
 
     
     public function createFrom(): CompanyDTO {
-        $adress = new AdressDTO($this->getAdressNum(), $this->getAdressVoie(), $this->getAdressCity());
         $gps = new GpsDTO($this->getGpsLatitude(), $this->getGpsLongitude());
-        return new CompanyDTO($this->getSiren(), $this->getSocialRaison(), $adress, $gps);            
+        $adress = new AdressDTO($this->getAdressNum(), $this->getAdressVoie(), $this->getAdressCity(), $this->getAdressCode(), $gps);
+        return new CompanyDTO($this->getSiren(), $this->getSocialRaison(), $adress);            
     }
 }
