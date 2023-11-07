@@ -5,6 +5,8 @@ namespace App\Service;
 use App\Entity\Company;
 use App\Model\CompanyDTO;
 use App\Repository\CompanyRepository;
+use CompanyExistingException;
+use CompanyNotExistException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 
@@ -30,57 +32,78 @@ class CompanyService {
         return $dataCompanies;
     }
 
-    public function upsertCompany(CompanyDTO $companyDTO, bool $isInsert) {
+    public function insert(CompanyDTO $companyDTO) {
         try {
             $resultQuery = $this->companyRepository->findOneBy(['siren' => $companyDTO->getSiren()]);
+            $sirenToReturn = null;
 
             if (!empty($resultQuery)) {
-                if($isInsert) {
-                    return 409;
-                }
+                throw new CompanyExistingException();     
+            } 
 
-                $adress = $companyDTO->getAdress();
-                $gps = $adress->getGps();
+            $company = Company::createFrom($companyDTO);
+            $this->entityManager->persist($company);
+            $sirenToReturn = $companyDTO->getSiren();
+            
+            $this->entityManager->flush();
+            return $sirenToReturn;
+        } catch (CompanyExistingException $cee) {
+           throw $cee;
+           return null;
+        }catch(Exception $e) {
+            dump($e);
+            return null;
+        }
+    }
 
-                if ($resultQuery->getSocialRaison() != $companyDTO->getSocialRaison()) {
-                    $resultQuery->setSocialRaison($companyDTO->getSocialRaison());
-                }
-
-                if ($resultQuery->getAdressNum() != $adress->getNumero()) {
-                    $resultQuery->setAdressNum($adress->getNumero());
-                }
-
-                if ($resultQuery->getAdressVoie() != $adress->getVoie()) {
-                    $resultQuery->setAdressVoie($adress->getVoie());
-                }
-
-                if ($resultQuery->getAdressCity() != $adress->getCity()) {
-                    $resultQuery->setAdressCity($adress->getCity());
-                }
-
-                if ($resultQuery->getAdressCode() != $adress->getCodePostal()) {
-                    $resultQuery->setAdressCode($adress->getCodePostal());
-                }
-
-                if ($resultQuery->getGpsLatitude() != $gps->getLatitude()) {
-                    $resultQuery->setGpsLatitude($gps->getLatitude());
-                }
-
-                if ($resultQuery->getGpsLongitude() != $gps->getLongitude()) {
-                    $resultQuery->setGpsLongitude($gps->getLongitude());
-                }
-
-                $this->entityManager->persist($resultQuery);
-            } else {
-                $company = Company::createFrom($companyDTO);
-                $this->entityManager->persist($company);
+    public function updateCompany(CompanyDTO $companyDTO, string $siren) {
+        try {
+            $resultQuery = $this->companyRepository->findOneBy(['siren' => $siren]);
+            if (empty($resultQuery)) {
+                throw new CompanyNotExistException();
             }
 
-            $this->entityManager->flush();
-            return 200;
-        } catch(Exception $e) {
+            $adress = $companyDTO->getAdress();
+            $gps = $adress->getGps();
+
+            if ($resultQuery->getSocialRaison() != $companyDTO->getSocialRaison()) {
+                $resultQuery->setSocialRaison($companyDTO->getSocialRaison());
+            }
+
+            if ($resultQuery->getAdressNum() != $adress->getNumero()) {
+                $resultQuery->setAdressNum($adress->getNumero());
+            }
+
+            if ($resultQuery->getAdressVoie() != $adress->getVoie()) {
+                $resultQuery->setAdressVoie($adress->getVoie());
+            }
+
+            if ($resultQuery->getAdressCity() != $adress->getCity()) {
+                $resultQuery->setAdressCity($adress->getCity());
+            }
+
+            if ($resultQuery->getAdressCode() != $adress->getCodePostal()) {
+                $resultQuery->setAdressCode($adress->getCodePostal());
+            }
+
+            if ($resultQuery->getGpsLatitude() != $gps->getLatitude()) {
+                $resultQuery->setGpsLatitude($gps->getLatitude());
+            }
+
+            if ($resultQuery->getGpsLongitude() != $gps->getLongitude()) {
+                $resultQuery->setGpsLongitude($gps->getLongitude());
+            }
+
+            $this->entityManager->persist($resultQuery);
+            $sirenToReturn = $resultQuery->getSiren();
+
+            return $sirenToReturn;
+        } catch (CompanyNotExistException $cce) {
+            throw $cce;
+            return null;
+        }catch(Exception $e) {
             dump($e);
-            return 400;
+            return null;
         }
     }
 }

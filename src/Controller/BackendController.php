@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Company;
 use App\Model\CompanyDTO;
 use App\Service\CompanyService;
+use CompanyExistingException;
+use CompanyNotExistException;
 use DefaultMessage;
 use Doctrine\ORM\Cache\DefaultCache;
 use Exception;
@@ -49,25 +52,58 @@ class BackendController extends AbstractController
     {   
         try {
         $jsonInput = $this->serializer->deserialize($request->getContent(), CompanyDTO::class, 'json');
-        $statusResponse = $this->companyService->upsertCompany($jsonInput, true);
+        $sirenExist = $this->companyService->insertCompany($jsonInput);
+        
+        if (!empty($sirenExist)) {
+            $getterUrl = $_SERVER['SERVER_NAME']."/api-ouverte-ent-liste/search?siren=".$sirenExist;
+            $message = new DefaultMessage("Company created with siren".$sirenExist, $getterUrl);
+            $jsonResponse = $this->serializer->serialize($message, 'json');
+            return new Response($jsonResponse, 201);
+        }
 
-        if ($statusResponse == 409) {
+        } catch (CompanyExistingException $cee) {
             $errorMessage = new DefaultMessage("Enterprise already exist");
             $errorJson = $this->serializer->serialize($errorMessage, 'json');
             return new Response($errorJson, 409);
-        }
-        
-        if ($statusResponse == 200) {
-            $getterUrl = $_SERVER['SERVER_NAME']."/api-ouverte-ent-liste/search?siren=".$jsonInput->getSiren();
-            $message = new DefaultMessage("Company created with siren".$jsonInput->getSiren(), $getterUrl);
-            $jsonResponse = $this->serializer->serialize($message, 'json');
-            return new Response($jsonResponse, $statusResponse);
-        }
-
         } catch (Exception $e) {
             $errorMessage = new DefaultMessage("Error json format");
             $errorJson = $this->serializer->serialize($errorMessage, 'json');
             return new Response($errorJson, 400);
         }        
+    }
+
+    #[Route('/{siren}', name: 'update_all_fields', methods:['PATCH'] )]
+    public function update_all_fields(string $siren, Request $request) : Response {
+        try {
+            $jsonInput = $this->serializer->deserialize($request->getContent(), CompanyDTO::class, 'json');
+            $sirenExist = $this->companyService->updateCompany($jsonInput, $siren);
+            
+            if (!empty($sirenExist)) {
+                $getterUrl = $_SERVER['SERVER_NAME']."/api-ouverte-ent-liste/search?siren=".$sirenExist;
+                $message = new DefaultMessage("Company created with siren".$sirenExist, $getterUrl);
+                $jsonResponse = $this->serializer->serialize($message, 'json');
+                return new Response($jsonResponse, 201);
+            }
+        }catch(CompanyNotExistException $cee) {
+            $errorMessage = new DefaultMessage("Error json format");
+            $errorJson = $this->serializer->serialize($errorMessage, 'json');
+            return new Response($errorJson, 400);
+        } catch (Exception $e) {
+            $errorMessage = new DefaultMessage("Error json format");
+            $errorJson = $this->serializer->serialize($errorMessage, 'json');
+            return new Response($errorJson, 400);
+        }
+    }
+
+    #[Route('/{siren}', name: 'delete', methods:['DELETE'] )]
+    public function delete_company(string $siren) {
+
+        try {
+            $isDelete = $this->companyService->remove($siren);
+        } catch (CompanyNotExistException $cee) {
+
+        } catch (Exception $e) {
+
+        }
     }
 }
