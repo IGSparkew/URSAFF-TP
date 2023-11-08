@@ -5,7 +5,7 @@
         
 
          public function __construct(private string $message, private ?string $uri = null) { }
-
+        
         /**
          * Get the value of message
          *
