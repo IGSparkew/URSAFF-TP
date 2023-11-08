@@ -32,7 +32,7 @@ class CompanyService {
         return $dataCompanies;
     }
 
-    public function insert(CompanyDTO $companyDTO) {
+    public function insertCompany(CompanyDTO $companyDTO) {
         try {
             $resultQuery = $this->companyRepository->findOneBy(['siren' => $companyDTO->getSiren()]);
             $sirenToReturn = null;
@@ -103,6 +103,22 @@ class CompanyService {
             return null;
         }catch(Exception $e) {
             dump($e);
+            return null;
+        }
+    }
+
+    public function remove(string $siren) {
+        try {
+            $finded = $this->companyRepository->findOneBy(["siren"=>$siren]);
+            if (empty($finded)) {
+                throw new CompanyNotExistException();
+            }
+            $isDelete = $this->companyRepository->delete($finded);
+            return $isDelete;
+        } catch(CompanyNotExistException $cee) {
+            throw $cee;
+            return null;
+        } catch (Exception $e) {
             return null;
         }
     }

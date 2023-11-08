@@ -2,16 +2,13 @@
 
 namespace App\Controller;
 
-use App\Entity\Company;
 use App\Model\CompanyDTO;
 use App\Service\CompanyService;
 use CompanyExistingException;
 use CompanyNotExistException;
 use DefaultMessage;
-use Doctrine\ORM\Cache\DefaultCache;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -77,6 +74,7 @@ class BackendController extends AbstractController
         try {
             $jsonInput = $this->serializer->deserialize($request->getContent(), CompanyDTO::class, 'json');
             $sirenExist = $this->companyService->updateCompany($jsonInput, $siren);
+            // add auth 
             
             if (!empty($sirenExist)) {
                 $getterUrl = $_SERVER['SERVER_NAME']."/api-ouverte-ent-liste/search?siren=".$sirenExist;
@@ -85,9 +83,9 @@ class BackendController extends AbstractController
                 return new Response($jsonResponse, 201);
             }
         }catch(CompanyNotExistException $cee) {
-            $errorMessage = new DefaultMessage("Error json format");
+            $errorMessage = new DefaultMessage("Error company not found! ");
             $errorJson = $this->serializer->serialize($errorMessage, 'json');
-            return new Response($errorJson, 400);
+            return new Response($errorJson, 409);
         } catch (Exception $e) {
             $errorMessage = new DefaultMessage("Error json format");
             $errorJson = $this->serializer->serialize($errorMessage, 'json');
@@ -97,13 +95,28 @@ class BackendController extends AbstractController
 
     #[Route('/{siren}', name: 'delete', methods:['DELETE'] )]
     public function delete_company(string $siren) {
-
+            // add auth 
         try {
             $isDelete = $this->companyService->remove($siren);
+
+            if ($isDelete) {
+                $message = new DefaultMessage("Company was deleted with id: ".$siren);
+                $jsonResponse = $this->serializer->serialize($message, 'json');
+                return new Response($jsonResponse, 200);
+            }
+
+            $message = new DefaultMessage("Error to delete Company with id: ".$siren);
+            $jsonResponse = $this->serializer->serialize($message, 'json');
+            return new Response($jsonResponse, 400);
+
         } catch (CompanyNotExistException $cee) {
-
+            $errorMessage = new DefaultMessage("Error company not found with this siren: ".$siren);
+            $errorJson = $this->serializer->serialize($errorMessage, 'json');
+            return new Response($errorJson, 404);
         } catch (Exception $e) {
-
+            $errorMessage = new DefaultMessage("Error json format");
+            $errorJson = $this->serializer->serialize($errorMessage, 'json');
+            return new Response($errorJson, 400);
         }
     }
 }
