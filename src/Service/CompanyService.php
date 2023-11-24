@@ -100,8 +100,8 @@ class CompanyService {
                     }
                 }
             }
-
             $this->entityManager->persist($resultQuery);
+            $this->entityManager->flush();
             $sirenToReturn = $resultQuery->getSiren();
 
             return $sirenToReturn;
