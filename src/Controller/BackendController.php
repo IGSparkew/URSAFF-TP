@@ -77,7 +77,7 @@ class BackendController extends AbstractController
             
             if (!empty($sirenExist)) {
                 $getterUrl = $_SERVER['SERVER_NAME']."/api-ouverte-ent-liste/search?siren=".$sirenExist;
-                return $this->setupResponse("Company created with siren".$sirenExist, 200, $getterUrl);
+                return $this->setupResponse("Company updated with siren".$sirenExist, 200, $getterUrl);
                 
             }
         }catch(CompanyNotExistException $cee) {
