@@ -6,16 +6,16 @@
     class CompanyDTO {
 
         #[SerializedName('siren')]
-        private string $siren;
+        private ?string $siren;
         
         #[SerializedName('raison_sociale')]
         private string $social_raison; 
 
         #[SerializedName('adresse')]
-        private AdressDTO $adress;
+        private ?AdressDTO $adress;
         
         
-        public function __construct(string $siren, string $social_raison, AdressDTO $adress) {
+        public function __construct(string $siren="", string $social_raison, AdressDTO $adress = null) {
                 $this->siren = $siren;
                 $this->social_raison = $social_raison;
                 $this->adress = $adress;
@@ -69,7 +69,7 @@
          *
          * @return AdressDTO
          */
-        public function getAdress(): AdressDTO {
+        public function getAdress(): AdressDTO | null {
                 return $this->adress;
         }
     }

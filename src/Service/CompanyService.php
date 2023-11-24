@@ -64,34 +64,41 @@ class CompanyService {
             }
 
             $adress = $companyDTO->getAdress();
-            $gps = $adress->getGps();
+            
 
             if ($resultQuery->getSocialRaison() != $companyDTO->getSocialRaison()) {
                 $resultQuery->setSocialRaison($companyDTO->getSocialRaison());
             }
 
-            if ($resultQuery->getAdressNum() != $adress->getNumero()) {
-                $resultQuery->setAdressNum($adress->getNumero());
-            }
+            if (!empty($adress)) {
+                $gps = $adress->getGps();
 
-            if ($resultQuery->getAdressVoie() != $adress->getVoie()) {
-                $resultQuery->setAdressVoie($adress->getVoie());
-            }
+                if ($resultQuery->getAdressNum() != $adress->getNumero()) {
+                    $resultQuery->setAdressNum($adress->getNumero());
+                }
+    
+                if ($resultQuery->getAdressVoie() != $adress->getVoie()) {
+                    $resultQuery->setAdressVoie($adress->getVoie());
+                }
+    
+                if ($resultQuery->getAdressCity() != $adress->getCity()) {
+                    $resultQuery->setAdressCity($adress->getCity());
+                }
+    
+                if ($resultQuery->getAdressCode() != $adress->getCodePostal()) {
+                    $resultQuery->setAdressCode($adress->getCodePostal());
+                }
 
-            if ($resultQuery->getAdressCity() != $adress->getCity()) {
-                $resultQuery->setAdressCity($adress->getCity());
-            }
+                if (!empty($gps)) {
 
-            if ($resultQuery->getAdressCode() != $adress->getCodePostal()) {
-                $resultQuery->setAdressCode($adress->getCodePostal());
-            }
-
-            if ($resultQuery->getGpsLatitude() != $gps->getLatitude()) {
-                $resultQuery->setGpsLatitude($gps->getLatitude());
-            }
-
-            if ($resultQuery->getGpsLongitude() != $gps->getLongitude()) {
-                $resultQuery->setGpsLongitude($gps->getLongitude());
+                    if ($resultQuery->getGpsLatitude() != $gps->getLatitude()) {
+                        $resultQuery->setGpsLatitude($gps->getLatitude());
+                    }
+        
+                    if ($resultQuery->getGpsLongitude() != $gps->getLongitude()) {
+                        $resultQuery->setGpsLongitude($gps->getLongitude());
+                    }
+                }
             }
 
             $this->entityManager->persist($resultQuery);

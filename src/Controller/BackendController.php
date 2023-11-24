@@ -71,6 +71,7 @@ class BackendController extends AbstractController
         try {
             $jsonInput = $this->serializer->deserialize($request->getContent(), CompanyDTO::class, 'json');
             $sirenExist = $this->companyService->updateCompany($jsonInput, $siren);
+
             
             $response = $this->authSecurity($request);
             if (!empty($response)) return $response;
@@ -84,6 +85,8 @@ class BackendController extends AbstractController
             return $this->setupResponse("Error company not found! ", 404);
 
         } catch (Exception $e) {
+            dd($e);
+
             return $this->setupResponse("Error json format", 400);
 
         }

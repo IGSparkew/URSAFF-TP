@@ -18,9 +18,9 @@
          private int $code_postal;
 
          #[SerializedName('gps')]
-         private GpsDTO $gps;
+         private ?GpsDTO $gps;
 
-        public function __construct(int $numero, string $voie, string $city, int $code_postal, GpsDTO $gps) {
+        public function __construct(int $numero, string $voie, string $city, int $code_postal, GpsDTO $gps=null) {
                 $this->numero = $numero;
                 $this->voie = $voie;
                 $this->city = $city;
@@ -117,7 +117,7 @@
          *
          * @return GpsDTO
          */
-        public function getGps(): GpsDTO {
+        public function getGps(): GpsDTO | null {
                 return $this->gps;
         }
     }
