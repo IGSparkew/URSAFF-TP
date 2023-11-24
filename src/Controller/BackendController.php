@@ -92,14 +92,11 @@ class BackendController extends AbstractController
     public function delete_company(Request $request, string $siren) {
         try {
             $response = $this->authSecurity($request);
+            
             if (!empty($response)) return $response;
+            $this->companyService->remove($siren);
 
-            $isDelete = $this->companyService->remove($siren);
-
-            if ($isDelete) {
-                return $this->setupResponse("Company was deleted with id: ".$siren, 200);
-            }
-            return $this->setupResponse("Error to delete Company with id: ".$siren, 400);
+            return $this->setupResponse("Company was deleted with id: ".$siren, 200);
         } catch (CompanyNotExistException $cee) {
             return $this->setupResponse("Error company not found with this siren: ".$siren, 404);
         } catch (Exception $e) {

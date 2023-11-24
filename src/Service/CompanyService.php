@@ -100,6 +100,7 @@ class CompanyService {
                     }
                 }
             }
+
             $this->entityManager->persist($resultQuery);
             $this->entityManager->flush();
             $sirenToReturn = $resultQuery->getSiren();
@@ -120,8 +121,8 @@ class CompanyService {
             if (empty($finded)) {
                 throw new CompanyNotExistException();
             }
-            $isDelete = $this->companyRepository->delete($finded);
-            return $isDelete;
+            $this->entityManager->remove($finded);
+            $this->entityManager->flush();
         } catch(CompanyNotExistException $cee) {
             throw $cee;
             return null;
